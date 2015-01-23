@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="index.css">
+    <link href='http://fonts.googleapis.com/css?family=Josefin+Slab' rel='stylesheet' type='text/css'>
+    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD306nySU1SsoNQR9Op4SX6gwX8UPynT5A"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false&libraries=places"></script>
+    <script type="text/javascript">
+
+
+    var all_markers = []
+    var autocomplete;
+    var searchRadius = 5;
+    var map;
+
+    function Entity (typ, lat, lon, nam) {
+      this.typ = typ;
+      this.lat = lat;
+      this.lon = lon;
+      this.nam = nam
+    }     
+
+    var data = [new Entity("Account", 37.7944988, -122.3947445999999, "Salesforce"), 
+                new Entity("Account", 37.555, -122.296, "Intel"),
+                new Entity("Contact", 37.55, -122.399, "Tripti"), 
+                new Entity("Contact", 37.66, -122.452, "Derek"), 
+                new Entity("Contact", 37.65, -122.419, "Rebecca"), 
+                new Entity("Contact", 37.59, -122.412, "Nick"),
+                new Entity("Lead", 37.43, -122.41, "Daunish"), 
+                new Entity("Lead", 37.493, -122.421, "Megan"),];
+
+    function populate(map) {
+        for (var i = 0; i < data.length; i++) {
+          var entity = data[i];
+          if (entity.typ == "Account") {
+            var image = {
+                url: "http://maps.google.com/mapfiles/ms/icons/green-dot.png",
+              };
+          } else if (entity.typ == "Contact") {
+              var image = {
+                url: "http://maps.google.com/mapfiles/ms/icons/red-dot.png",
+              };
+          } else {
+            var image = {
+                url: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png",
+            };
+          }
+          var entityLatLong = new google.maps.LatLng(entity.lat,entity.lon);
+          var marker = new google.maps.Marker({
+            position: entityLatLong,
+            map: map,
+            animation: google.maps.Animation.DROP,
+            title: entity.typ + ": " + entity.nam,
+            icon: image
+          });
+          all_markers.push(marker);
+        }
+      }
+
+      function findEntitiesBasedOnAddress() {
+        var place = autocomplete.getPlace();
+        if (place == null) {
+            return false;
+        }
+        // If the input in radius is an int update the search radius default
+        if (document.getElementById("radius").value % 1 === 0) {
+          searchRadius = document.getElementById("radius").value;
+        }
+        var latitude = place.geometry.location.lat();
+        var longitude = place.geometry.location.lng();
+        // alert("LAT:" + latitude + "  LON:   " + longitude);
+        updateMap(latitude, longitude);
+        return false;
+      }
+
+      function findEntitiesBasedOnLatLon(form) {
+        var latitude = (form.latitude.value);
+        var longitude = (form.longitude.value);
+        updateMap(latitude, longitude);
+
+        form.longitude.value = "";
+        form.latitude.value = "";
+        return false;
+      }
+
+      function updateMap(latitude, longitude) {
+        document.getElementById("closeResults").innerHTML = "";
+        for (var i = 0; i < all_markers.length; i++) {
+          var mark = all_markers[i];
+          var geoDistanceInMiles = distanceInMilesBetweenTwoGeoPoints(latitude, longitude, 
+                                    mark.position.lat(), mark.position.lng());
+          if (geoDistanceInMiles < searchRadius) {
+            var newSpan = document.createElement("span");
+            newSpan.innerHTML = mark.getTitle() + " <br> " + geoDistanceInMiles.toFixed(2) + "miles away<br><br>";
+            document.getElementById("closeResults").appendChild(newSpan);
+            mark.setAnimation(google.maps.Animation.BOUNCE);
+
+          } else {
+            mark.setAnimation(null);
+          }
+        }
+        updateMapZoom(latitude, longitude);
+      }
+
+      function updateMapZoom(lat, lon){
+        map.setCenter(new google.maps.LatLng(lat,lon));
+        var myLatLng = new google.maps.LatLng(lat,lon);
+        var circleOptions = {
+          center: myLatLng,
+          fillOpacity: 0,
+          strokeOpacity:0,
+          map: map,
+          radius: searchRadius * 1609.36,
+        }
+      var myCircle = new google.maps.Circle(circleOptions);
+      map.fitBounds(myCircle.getBounds());
+      }
+
+      function toRad(Value) {
+        return Value * Math.PI / 180;
+      }
+
+
+      // Haversine Formula to calculate miles between to Geo Points
+      function distanceInMilesBetweenTwoGeoPoints(lat1, lon1, lat2, lon2){
+        var R = 3963.1676
+        // Earth's radius in miles
+        var d1 = toRad(lat1);
+        var d2 = toRad(lat2);
+        var a1 = toRad((lat2-lat1));
+        var a2 = toRad((lon2-lon1));
+        var a = Math.sin(a1/2) * Math.sin(a1/2) +
+                Math.cos(d1) * Math.cos(d2) *
+                Math.sin(a2/2) * Math.sin(a2/2);
+        var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        var d = R * c;
+        return d
+      }
+
+      function initialize() {
+        var mapOptions = {
+          center: { lat: 37.794192, lng: -122.394884},
+          zoom: 9,
+          // mapTypeId: 'satellite'
+        };
+        map = new google.maps.Map(document.getElementById('map-canvas'),
+            mapOptions);
+        autocomplete = new google.maps.places.Autocomplete(document.getElementById('place'));
+        autocomplete.bindTo('bounds', map);
+        populate(map);
+      }
+      google.maps.event.addDomListener(window, 'load', initialize);
+    </script>
+  </head>
+  <body>
+    <div class="container">
+      <div class="jumbotron">
+        <div class="row">
+          <div class="col-md-8">
+            <h1 id="geoTitle">Real Geo Data</h1> <h3 id="geoSmall">Visualization</h3>
+          </div>
+          <div class="col-md-4">
+            <img id="logo" src="cloud.png">
+          </div>
+        </div>
+      </div>
+      <div class="row" id="search">
+        <div class="col-md-9 col-md-offset-3">
+          <div class='row'>
+            <div class="col-md-6">
+              <h3 class='inline'>Location: </h3>
+              <input id="place" type="text" name='search'>
+            </div>
+            <div class="col-md-4">
+              <h3 class='inline'>Radius: </h3>
+              <input id="radius" type="text" name='radius' placeholder="The distance in miles to search for clients.">
+            </div>
+              <div class="col-md-2">
+              <input type="button" name="button" value="Submit" onClick="findEntitiesBasedOnAddress()"></input>
+            </div>
+            </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-3">
+          <div class="row">
+            <img class="marker" src="http://maps.google.com/mapfiles/ms/icons/green-dot.png"> <h3 class="marker">Account</h3>
+          </div>
+          <div class="row">
+            <img class="marker" src="http://maps.google.com/mapfiles/ms/icons/red-dot.png"> <h3 class="marker">Contact</h3>
+          </div>
+          <div class="row">
+            <img class="marker" src="http://maps.google.com/mapfiles/ms/icons/blue-dot.png"> <h3 class="marker">Lead</h3>
+          </div>
+          <div id="closeResults" class="row">
+          </div>
+        </div>
+        <div class="col-md-9">
+          <div class="row" id="map-canvas">
+          </div>
+        </div>
+    </div>
+
+  </div>
+  </body>
+</html>
