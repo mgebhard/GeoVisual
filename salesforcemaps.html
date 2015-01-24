@@ -7,7 +7,7 @@
 
     <!-- Bootstrap -->
     <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
-    <link rel="stylesheet" type="text/css" href="index.css">
+    <link rel="stylesheet" type="text/css" href="/css/index.css">
     <link href='http://fonts.googleapis.com/css?family=Josefin+Slab' rel='stylesheet' type='text/css'>
     <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD306nySU1SsoNQR9Op4SX6gwX8UPynT5A"></script>
     <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false&libraries=places"></script>
@@ -88,17 +88,23 @@
         form.latitude.value = "";
         return false;
       }
-
+// <a href="#" class="list-group-item"> Megan <span class="badge">Distance in Miles</span></a>
       function updateMap(latitude, longitude) {
-        document.getElementById("closeResults").innerHTML = "";
+        document.getElementById("Account").innerHTML = "Account";
+        document.getElementById("Contact").innerHTML = "Contact";
+        document.getElementById("Lead").innerHTML = "Lead";
         for (var i = 0; i < all_markers.length; i++) {
           var mark = all_markers[i];
+          var markTitle = mark.getTitle();
           var geoDistanceInMiles = distanceInMilesBetweenTwoGeoPoints(latitude, longitude, 
                                     mark.position.lat(), mark.position.lng());
           if (geoDistanceInMiles < searchRadius) {
-            var newSpan = document.createElement("span");
-            newSpan.innerHTML = mark.getTitle() + " <br> " + geoDistanceInMiles.toFixed(2) + "miles away<br><br>";
-            document.getElementById("closeResults").appendChild(newSpan);
+            var listHeader = document.getElementById(markTitle.substr(0, markTitle.indexOf(":")));
+            // var linkTag = document.createElement("a");
+            // newSpan.innerHTML = mark.getTitle() + " <br> " + geoDistanceInMiles.toFixed(2) + "miles away<br><br>";
+            // listHeader.appendChild(newSpan);
+            var closeTag = '<a href="#" class="list-group-item">' + markTitle.substr(markTitle.indexOf(" "), markTitle.length-1)+ '<span class="badge">'+ geoDistanceInMiles.toFixed(2) + ' miles </span></a>';
+            listHeader.innerHTML = listHeader.innerHTML + closeTag;
             mark.setAnimation(google.maps.Animation.BOUNCE);
 
           } else {
@@ -157,6 +163,7 @@
       }
       google.maps.event.addDomListener(window, 'load', initialize);
     </script>
+    <meta name="google-site-verification" content="-zzzB7wv6GmGz5h1wFw1hdss5zy9wGZ0DNhmjFRpDyw" />
   </head>
   <body>
     <div class="container">
@@ -166,7 +173,7 @@
             <h1 id="geoTitle">Real Geo Data</h1> <h3 id="geoSmall">Visualization</h3>
           </div>
           <div class="col-md-4">
-            <img id="logo" src="cloud.png">
+            <img id="logo" src="/pictures/cloud.png">
           </div>
         </div>
       </div>
@@ -182,7 +189,7 @@
               <input id="radius" type="text" name='radius' placeholder="The distance in miles to search for clients.">
             </div>
               <div class="col-md-2">
-              <input type="button" name="button" value="Submit" onClick="findEntitiesBasedOnAddress()"></input>
+              <button type="button" class="btn btn-info" name="button" value="Submit" onClick="findEntitiesBasedOnAddress()">Submit</button>
             </div>
             </div>
         </div>
@@ -198,7 +205,22 @@
           <div class="row">
             <img class="marker" src="http://maps.google.com/mapfiles/ms/icons/blue-dot.png"> <h3 class="marker">Lead</h3>
           </div>
-          <div id="closeResults" class="row">
+          <div id="closeEntities" class="row">
+            <div class="list-group">
+            <a href="#" class="list-group-item active" id="Account">
+              Account
+            </a>
+            </div>
+            <div class="list-group">
+            <a href="#" class="list-group-item active" id="Contact">
+              Contact
+            </a>
+          </div>
+          <div class="list-group">
+            <a href="#" class="list-group-item active" id="Lead">
+              Lead
+            </a>
+          </div>
           </div>
         </div>
         <div class="col-md-9">
@@ -210,6 +232,7 @@
   </div>
   </body>
 </html>
+
 
 <!--     <form id="currentGeoForm" name="currentGeoForm" action="">
     <h3>Latitude:</h3><br>

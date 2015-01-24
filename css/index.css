@@ -21,13 +21,20 @@ input{
 img{
 	vertical-align:middle
 }*/
+#closeEntities{
+	margin-top: 30px;
+	width:95%;
+	overflow: scroll;
+	height: 260px;
+
+}
 #map-canvas {
   width: 100%;
   height: 400px;
 }
 
 #place{
-	/*width: 30%;*/
+	width: 70%;
 }
 #radius{
 	/*width: 20%;*/
@@ -43,6 +50,10 @@ img{
 	width: 125px;
 	height: 87.5px;
 	float: right;
+}
+button{
+	background-color:#009DDC;	
+	color:white;
 }
 #geoTitle{
 	color:#009DDC;
