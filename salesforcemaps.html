@@ -15,6 +15,8 @@
 
 
     var all_markers = []
+    var nameToMarker = new Object();
+
     var autocomplete;
     var searchRadius = 5;
     var map;
@@ -60,7 +62,28 @@
             icon: image
           });
           all_markers.push(marker);
+          var stringEntityName = getHash(String(entity.nam));
+          nameToMarker[stringEntityName] = marker;
         }
+      }
+
+      function getHash(word) {
+        value = 1;
+        prime = 31;
+        for (var i = 0, len = word.length; i < len; i++) {
+          value = value * prime + word.charCodeAt(i);
+        }
+        return value;
+      }
+
+      function focusOnEntity(link) {
+        var linkText = link.innerHTML;
+        var entityHash = getHash(linkText.substr(1, linkText.indexOf("<span") - 1));
+        var specificMarker = nameToMarker[entityHash];
+        searchRadius = .4;
+        updateMapZoom(specificMarker.getPosition().lat(), specificMarker.getPosition().lng());
+        specificMarker.setAnimation(google.maps.Animation.BOUNCE);
+        return false;
       }
 
       function findEntitiesBasedOnAddress() {
@@ -103,7 +126,7 @@
             // var linkTag = document.createElement("a");
             // newSpan.innerHTML = mark.getTitle() + " <br> " + geoDistanceInMiles.toFixed(2) + "miles away<br><br>";
             // listHeader.appendChild(newSpan);
-            var closeTag = '<a href="#" class="list-group-item">' + markTitle.substr(markTitle.indexOf(" "), markTitle.length-1)+ '<span class="badge">'+ geoDistanceInMiles.toFixed(2) + ' miles </span></a>';
+            var closeTag = '<a href="#" onclick="focusOnEntity(this); return false;" class="list-group-item">' + markTitle.substr(markTitle.indexOf(" "), markTitle.length-1)+ '<span class="badge">'+ geoDistanceInMiles.toFixed(2) + ' miles </span></a>';
             listHeader.innerHTML = listHeader.innerHTML + closeTag;
             mark.setAnimation(google.maps.Animation.BOUNCE);
 
